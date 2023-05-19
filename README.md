@@ -2,7 +2,7 @@
 
 - Push Any View
 - Pop Back To Specific View
-- Pop Back To Root
+- Pop Back To Root View
 - Pop Back To Previous View
 - Remove All Views In Stack
 - Set Custom Navigation Stack
