@@ -13,8 +13,9 @@
       Navigator.setStack([viewD.getVC(), viewE.getVC()])
 
 ## Example Demo
+https://github.com/alperozturk96/Navigator/assets/67455295/234cc94a-a5a9-485d-85c9-1a5e796a71e0
 
-https://github.com/alperozturk96/Navigator/assets/67455295/7e069e36-049d-490c-b8bf-0a81a7f41252
+
 
 ## Example Usage
 
