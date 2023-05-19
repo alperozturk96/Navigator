@@ -1,7 +1,8 @@
 # Navigator
 
 - Push Any View
-- Pop Back To Specific View
+- Push Any View And Set Navigation Bar Title
+- Pop Back To Specific View ( Navigation Bar Title must be set )
 - Pop Back To Root View
 - Pop Back To Previous View
 - Remove All Views In Stack
