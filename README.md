@@ -1,10 +1,16 @@
 # Navigator
 
 - Push Any View
-- Pop Back To Any View
+- Pop Back To Specific View
+- Pop Back To Root
 - Pop Back To Previous View
 - Remove All Views In Stack
 - Set Custom Navigation Stack
+
+  -   ```swift
+      let viewD = ViewD()
+      let viewE = ViewE()
+      Navigator.setStack([viewD.getVC(), viewE.getVC()])
 
 ## Example Demo
 
