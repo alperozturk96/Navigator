@@ -1,12 +1,15 @@
 # Navigator
 
-- Push Any View
+Navigator is a versatile and powerful library that makes SwiftUI app navigation a breeze. It provides a collection of easy-to-use methods to push, pop, and customize your navigation stack effortlessly.
+
+- Push Any View: With just a single line of code, you can push any view onto your navigation stack. Say goodbye to cumbersome navigation code!
 - Push Any View And Set Navigation Bar Title
 - Pop Back To Specific View ( Navigation Bar Title must be set )
-- Pop Back To Root View
-- Pop Back To Previous View
-- Remove All Views In Stack
-- Set Custom Navigation Stack
+- Pop Back To Root View: Effortlessly pop back to your app's root view. Simplify your navigation stack with ease.
+- Pop Back To Previous View: Quickly navigate back to the previous view, maintaining a smooth user experience.
+- Remove All Views In Stack: Cleanly clear your navigation stack and start fresh. Maintain a clean and organized app flow.
+- Set Custom Navigation Stack: Create a custom navigation stack tailored to your app's needs. Take control of your navigation flow like never before.
+
 
   -   ```swift
       let viewD = ViewD()
