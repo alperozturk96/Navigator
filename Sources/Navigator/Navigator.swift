@@ -7,7 +7,7 @@ public struct Navigator {
     public static func pop() {
         assert(Thread.isMainThread, "Must be run on main thread")
         
-        UIApplication.shared.getNavigationController()?.popViewController(animated: true)
+        UIApplication.shared.pop()
     }
     
     /// Goes back to first element in the navigation stack.
@@ -26,18 +26,18 @@ public struct Navigator {
     /// e.g Before: A (title: "Home") -> B (title: "Item List") -> C (title: "Item Detail Page") -> D (title: "User Page")
     /// After: popTo(Item List) A -> B
     @discardableResult
-    public static func popTo(_ navigationBarTitle: String) -> Bool {
+    public static func popTo(_ navigationBarTitle: String, animation: NavigationAnimation? = nil) -> Bool {
         assert(Thread.isMainThread, "Must be run on main thread")
         
-        return UIApplication.shared.popToView(navigationBarTitle)
+        return UIApplication.shared.popToView(navigationBarTitle, animation: animation)
     }
     
     /// Add new element in the navigation stack. For first use NavigationView must be used.
     /// e.g Before: A -> B -> C | After: A -> B -> C -> D
-    public static func push<V: View>(_ view: V, title: String? = nil) {
+    public static func push<V: View>(_ view: V, animation: NavigationAnimation? = nil, title: String? = nil) {
         assert(Thread.isMainThread, "Must be run on main thread")
         
-        UIApplication.shared.pushToView(view: view, title: title)
+        UIApplication.shared.pushToView(view: view, animation: animation, title: title)
     }
     
     /// Remove all elements from navigation stack.
