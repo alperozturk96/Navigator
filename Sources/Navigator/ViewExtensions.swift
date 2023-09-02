@@ -1,5 +1,5 @@
 //
-//  File.swift
+//  ViewExtensions.swift
 //  
 //
 //  Created by Alper Ozturk on 2.09.2023.
