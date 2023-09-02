@@ -8,6 +8,7 @@
 import UIKit
 import SwiftUI
 
+// MARK: - UIWindow
 extension UIApplication {
     var firstWindow: UIWindow? {
         return UIApplication.shared.connectedScenes
@@ -16,8 +17,11 @@ extension UIApplication {
             .flatMap({ $0 as? UIWindowScene })?.windows
             .first(where: \.isKeyWindow)
     }
-    
-    func presentModal<V: View>(view: V, title: String? = nil) {
+}
+
+// MARK: - Navigations
+extension UIApplication {
+    func presentModal<V: View>(view: V, title: String?) {
         guard let navigationController = getNavigationController() else {
             return
         }
@@ -33,7 +37,7 @@ extension UIApplication {
         }
     }
     
-    func pushToView<V: View>(view: V, title: String? = nil) {
+    func pushToView<V: View>(view: V, animation: NavigationAnimation?, title: String?) {
         guard let navigationController = getNavigationController() else {
             return
         }
@@ -45,24 +49,38 @@ extension UIApplication {
         }
         
         if !navigationController.children.contains(targetVC) {
+            if let animation {
+                addTransition(vc: targetVC, animation: animation)
+            }
             navigationController.pushViewController(targetVC, animated: true)
         }
     }
 
     @discardableResult
-    func popToView(_ navigationBarTitle: String) -> Bool {
+    func popToView(_ navigationBarTitle: String, animation: NavigationAnimation?) -> Bool {
         guard let navigationController = getNavigationController() else {
             return false
         }
         
         for vc in navigationController.children {
             if vc.navigationItem.title == navigationBarTitle {
+                if let animation {
+                    addTransition(vc: vc, animation: animation)
+                }
                 navigationController.popToViewController(vc, animated: true)
                 return true
             }
         }
         
         return false
+    }
+    
+    func pop() {
+        guard let navigationController = getNavigationController() else {
+            return
+        }
+        
+        navigationController.popViewController(animated: true)
     }
     
     func setNavigationStack<V: View>(views: [V]) {
@@ -106,6 +124,14 @@ extension UIApplication {
         guard let rootViewController = window.rootViewController else { return nil }
         guard let navigationController = findNavigationController(viewController: rootViewController) else { return nil }
         return navigationController
+    }
+    
+    private func addTransition(vc: UIViewController, animation: NavigationAnimation) {
+        let transition = CATransition()
+        transition.duration = animation.duration
+        transition.timingFunction = CAMediaTimingFunction(name: animation.mediaTimingFunction)
+        transition.type = animation.transitionType
+        vc.view.layer.add(transition, forKey: nil)
     }
     
     private func findNavigationController(viewController: UIViewController?) -> UINavigationController? {
