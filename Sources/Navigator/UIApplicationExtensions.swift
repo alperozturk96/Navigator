@@ -8,12 +8,6 @@
 import UIKit
 import SwiftUI
 
-extension View {
-    func getVC() -> UIViewController {
-        return UIHostingController(rootView: self)
-    }
-}
-
 extension UIApplication {
     var firstWindow: UIWindow? {
         return UIApplication.shared.connectedScenes
@@ -76,13 +70,6 @@ extension UIApplication {
         setNavigationStack(views: [view])
     }
     
-    func getNavigationController() -> UINavigationController? {
-        guard let window = firstWindow else { return nil }
-        guard let rootViewController = window.rootViewController else { return nil }
-        guard let navigationController = findNavigationController(viewController: rootViewController) else { return nil }
-        return navigationController
-    }
-    
     func removeAllViews() {
         guard let navigationController = getNavigationController() else {
             return
@@ -94,7 +81,25 @@ extension UIApplication {
             $0.removeFromParent()
         })
     }
+}
 
+// MARK: - Navigation Controller
+extension UIApplication {
+    func createNavigationController() {
+        guard let window = firstWindow else { return }
+        guard let rootViewController = window.rootViewController else { return }
+        let navigationController = UINavigationController()
+        navigationController.viewControllers = [rootViewController]
+        window.rootViewController = navigationController
+    }
+    
+    func getNavigationController() -> UINavigationController? {
+        guard let window = firstWindow else { return nil }
+        guard let rootViewController = window.rootViewController else { return nil }
+        guard let navigationController = findNavigationController(viewController: rootViewController) else { return nil }
+        return navigationController
+    }
+    
     private func findNavigationController(viewController: UIViewController?) -> UINavigationController? {
         guard let vc = viewController else {
             return nil

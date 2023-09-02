@@ -22,7 +22,7 @@ public struct Navigator {
         navController.popToRootViewController(animated: animated)
     }
     
-    /// Goes back to specific element in the navigation stack with given title of view.
+    /// Goes back to specific element in the navigation stack with given title of View.
     /// e.g Before: A (title: "Home") -> B (title: "Item List") -> C (title: "Item Detail Page") -> D (title: "User Page")
     /// After: popTo(Item List) A -> B
     @discardableResult
@@ -56,12 +56,19 @@ public struct Navigator {
         UIApplication.shared.setNavigationStack(views: views)
     }
     
-    /// Replace the navigation stack with a single view. You can achieve the same result by using setStack with a single element inside it.
+    /// Replace the navigation stack with a single View. You can achieve the same result by using setStack with a single element inside it.
     /// e.g Before: A -> B -> C
     /// After: D
     public static func setRoot<V: View>(_ view: V) {
         assert(Thread.isMainThread, "Must be run on main thread")
         
         UIApplication.shared.setRootView(view: view)
+    }
+    
+    /// Creates UINavigationController and attaches to window.
+    public static func createNavigationController() {
+        assert(Thread.isMainThread, "Must be run on main thread")
+        
+        UIApplication.shared.createNavigationController()
     }
 }
