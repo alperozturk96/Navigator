@@ -85,14 +85,6 @@ extension UIApplication {
 
 // MARK: - Navigation Controller
 extension UIApplication {
-    func createNavigationController() {
-        guard let window = firstWindow else { return }
-        guard let rootViewController = window.rootViewController else { return }
-        let navigationController = UINavigationController()
-        navigationController.viewControllers = [rootViewController]
-        window.rootViewController = navigationController
-    }
-    
     func getNavigationController() -> UINavigationController? {
         guard let window = firstWindow else { return nil }
         guard let rootViewController = window.rootViewController else { return nil }

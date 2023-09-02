@@ -32,7 +32,7 @@ public struct Navigator {
         return UIApplication.shared.popToView(navigationBarTitle)
     }
     
-    /// Add new element in the navigation stack.
+    /// Add new element in the navigation stack. For first use NavigationView must be used.
     /// e.g Before: A -> B -> C | After: A -> B -> C -> D
     public static func push<V: View>(_ view: V, title: String? = nil) {
         assert(Thread.isMainThread, "Must be run on main thread")
@@ -63,12 +63,5 @@ public struct Navigator {
         assert(Thread.isMainThread, "Must be run on main thread")
         
         UIApplication.shared.setRootView(view: view)
-    }
-    
-    /// Creates UINavigationController and attaches to window.
-    public static func createNavigationController() {
-        assert(Thread.isMainThread, "Must be run on main thread")
-        
-        UIApplication.shared.createNavigationController()
     }
 }
