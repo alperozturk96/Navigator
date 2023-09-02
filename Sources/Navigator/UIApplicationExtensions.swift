@@ -8,13 +8,13 @@
 import UIKit
 import SwiftUI
 
-public extension View {
+extension View {
     func getVC() -> UIViewController {
         return UIHostingController(rootView: self)
     }
 }
 
-public extension UIApplication {
+extension UIApplication {
     var firstWindow: UIWindow? {
         return UIApplication.shared.connectedScenes
             .filter { $0.activationState == .foregroundActive }
@@ -55,11 +55,13 @@ public extension UIApplication {
         return false
     }
     
-    func setNavigationStack(controllers: [UIViewController]) {
+    func setNavigationStack<V: View>(views: [V]) {
         guard let window = firstWindow else { return }
         
         let navigationController = UINavigationController()
-        navigationController.viewControllers = controllers
+        navigationController.viewControllers = views.map({ view in
+            view.getVC()
+        })
         window.rootViewController = navigationController
         window.makeKeyAndVisible()
         
@@ -71,7 +73,7 @@ public extension UIApplication {
     }
     
     func setRootView<V: View>(view: V) {
-        setNavigationStack(controllers: [view.getVC()])
+        setNavigationStack(views: [view])
     }
     
     func getNavigationController() -> UINavigationController? {

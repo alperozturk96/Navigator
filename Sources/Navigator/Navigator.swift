@@ -37,10 +37,10 @@ public struct Navigator {
         UIApplication.shared.removeAllViews()
     }
     
-    public static func setStack(_ controllers: [UIViewController]) {
+    public static func setStack<V: View>(_ views: [V]) {
         assert(Thread.isMainThread, "Must be run on main thread")
         
-        UIApplication.shared.setNavigationStack(controllers: controllers)
+        UIApplication.shared.setNavigationStack(views: views)
     }
     
     public static func setRoot<V: View>(_ view: V) {
