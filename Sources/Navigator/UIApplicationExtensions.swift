@@ -17,6 +17,22 @@ extension UIApplication {
             .first(where: \.isKeyWindow)
     }
     
+    func presentModal<V: View>(view: V, title: String? = nil) {
+        guard let navigationController = getNavigationController() else {
+            return
+        }
+        
+        let targetVC = view.getVC()
+        
+        if let title {
+            targetVC.title = title
+        }
+        
+        if let topVC = navigationController.topViewController {
+            topVC.present(targetVC, animated: true, completion: nil)
+        }
+    }
+    
     func pushToView<V: View>(view: V, title: String? = nil) {
         guard let navigationController = getNavigationController() else {
             return

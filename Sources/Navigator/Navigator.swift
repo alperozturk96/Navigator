@@ -64,4 +64,11 @@ public struct Navigator {
         
         UIApplication.shared.setRootView(view: view)
     }
+    
+    /// Present given View modally.
+    public static func presentModal<V: View>(_ view: V, title: String? = nil) {
+        assert(Thread.isMainThread, "Must be run on main thread")
+        
+        UIApplication.shared.presentModal(view: view, title: title)
+    }
 }
