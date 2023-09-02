@@ -8,13 +8,7 @@
 import UIKit
 import SwiftUI
 
-public extension View {
-    func getVC() -> UIViewController {
-        return UIHostingController(rootView: self)
-    }
-}
-
-public extension UIApplication {
+extension UIApplication {
     var firstWindow: UIWindow? {
         return UIApplication.shared.connectedScenes
             .filter { $0.activationState == .foregroundActive }
@@ -55,11 +49,13 @@ public extension UIApplication {
         return false
     }
     
-    func setNavigationStack(controllers: [UIViewController]) {
+    func setNavigationStack<V: View>(views: [V]) {
         guard let window = firstWindow else { return }
         
         let navigationController = UINavigationController()
-        navigationController.viewControllers = controllers
+        navigationController.viewControllers = views.map({ view in
+            view.getVC()
+        })
         window.rootViewController = navigationController
         window.makeKeyAndVisible()
         
@@ -71,14 +67,7 @@ public extension UIApplication {
     }
     
     func setRootView<V: View>(view: V) {
-        setNavigationStack(controllers: [view.getVC()])
-    }
-    
-    func getNavigationController() -> UINavigationController? {
-        guard let window = firstWindow else { return nil }
-        guard let rootViewController = window.rootViewController else { return nil }
-        guard let navigationController = findNavigationController(viewController: rootViewController) else { return nil }
-        return navigationController
+        setNavigationStack(views: [view])
     }
     
     func removeAllViews() {
@@ -92,7 +81,17 @@ public extension UIApplication {
             $0.removeFromParent()
         })
     }
+}
 
+// MARK: - Navigation Controller
+extension UIApplication {
+    func getNavigationController() -> UINavigationController? {
+        guard let window = firstWindow else { return nil }
+        guard let rootViewController = window.rootViewController else { return nil }
+        guard let navigationController = findNavigationController(viewController: rootViewController) else { return nil }
+        return navigationController
+    }
+    
     private func findNavigationController(viewController: UIViewController?) -> UINavigationController? {
         guard let vc = viewController else {
             return nil
