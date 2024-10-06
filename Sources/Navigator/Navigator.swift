@@ -9,6 +9,7 @@ public struct Navigator {
     /// e.g Before: A -> B | After: A
     ///
     /// Usage ``Navigator.pop()``
+    @MainActor
     public static func pop() {
         assert(Thread.isMainThread, "Must be run on main thread")
         
@@ -19,6 +20,7 @@ public struct Navigator {
     /// e.g Before: A -> B -> C -> D | After: A
     ///
     /// Usage ``Navigator.popToRoot()`` or ``Navigator.popToRoot(animated: false)``
+    @MainActor
     public static func popToRoot(animated: Bool = true) {
         assert(Thread.isMainThread, "Must be run on main thread")
         
@@ -34,6 +36,7 @@ public struct Navigator {
     /// After: popTo(Item List) A -> B
     ///
     /// Usage ``Navigator.popTo("MovieList")``
+    @MainActor
     @discardableResult
     public static func popTo(_ navigationBarTitle: String, animation: NavigationAnimation? = nil) -> Bool {
         assert(Thread.isMainThread, "Must be run on main thread")
@@ -45,6 +48,7 @@ public struct Navigator {
     /// e.g Before: A -> B -> C | After: A -> B -> C -> D
     ///
     /// Usage ``Navigator.push(MovieListView())``
+    @MainActor
     public static func push<V: View>(_ view: V, animation: NavigationAnimation? = nil, title: String? = nil) {
         assert(Thread.isMainThread, "Must be run on main thread")
         
@@ -54,6 +58,7 @@ public struct Navigator {
     /// Remove all elements from navigation stack.
     ///
     /// Usage ``Navigator.removeAll()``
+    @MainActor
     public static func removeAll() {
         assert(Thread.isMainThread, "Must be run on main thread")
         
@@ -65,6 +70,7 @@ public struct Navigator {
     /// After: D -> E -> F
     ///
     /// Usage ``Navigator.setStack([MovieListView(), MovieListDetailView()])``
+    @MainActor
     public static func setStack<V: View>(_ views: [V]) {
         assert(Thread.isMainThread, "Must be run on main thread")
         
@@ -76,6 +82,7 @@ public struct Navigator {
     /// After: D
     ///
     /// Usage ``Navigator.setRoot(HomeView())``
+    @MainActor
     public static func setRoot<V: View>(_ view: V) {
         assert(Thread.isMainThread, "Must be run on main thread")
         
@@ -85,6 +92,7 @@ public struct Navigator {
     /// Present given View modally.
     ///
     /// Usage ``Navigator.presentModal(AddMovieBottomSheet())``
+    @MainActor
     public static func presentModal<V: View>(_ view: V, title: String? = nil) {
         assert(Thread.isMainThread, "Must be run on main thread")
         
