@@ -9,13 +9,10 @@ public struct Navigator {
     @MainActor
     public init(window: UIWindow) throws {
         self.window = window
-        
-        guard let navigationController = UIApplication.shared.findNavigationController(viewController: window.rootViewController) else {
-            print("🆘 No navigation controller found")
-            throw NavigationError.noNavigationController
-        }
-        
-        self.navigationController = navigationController
+        let nav = UINavigationController()
+        window.rootViewController = nav
+        window.makeKeyAndVisible()
+        self.navigationController = nav
     }
 }
 
@@ -33,10 +30,10 @@ public extension Navigator {
         
         if let id = identifier,
            navigationController.viewControllers
-             .compactMap({ $0 as? NavigatorViewController })
-             .contains(where: { $0.identifier == id }) {
+            .compactMap({ $0 as? NavigatorViewController })
+            .contains(where: { $0.identifier == id }) {
             print("🆘 View with identifier '\(id)' already exists.")
-          return
+            return
         }
         
         let vc = NavigatorViewController(rootView: view, identifier: identifier)
