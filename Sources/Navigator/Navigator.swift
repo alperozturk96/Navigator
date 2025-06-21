@@ -13,25 +13,12 @@ public struct Navigator {
     /// - Parameters:
     ///   - rootView: the SwiftUI `View` you want at the bottom of the stack.
     ///   - identifier: an optional string key to identify this root view.
-    ///   - windowScene: if your app uses scenes, pass in the relevant `UIWindowScene`; otherwise we'll pick the first foreground-active one.
-    /// - Throws: `NavigatorError.noWindow` if we can’t find or create a window scene.
     @MainActor
     public init<V: View>(
         rootView: V,
         identifier: String? = nil,
-        windowScene: UIWindowScene? = nil
-    ) throws {
-        let scene: UIWindowScene
-        if let provided = windowScene {
-            scene = provided
-        } else if let active = UIApplication.shared.connectedScenes
-            .first(where: { $0.activationState == .foregroundActive }) as? UIWindowScene {
-            scene = active
-        } else {
-            throw NavigatorError.noWindow
-        }
-        
-        let window = UIWindow(windowScene: scene)
+    ) {
+        let window = UIWindow()
         let rootVC = NavigatorView(rootView: rootView, identifier: identifier)
         let nav = UINavigationController(rootViewController: rootVC)
         
