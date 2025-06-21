@@ -18,6 +18,8 @@ public extension Navigator {
     func push<V: View>(_ view: V, identifier: String?, animation: NavigationAnimation? = nil) {
         assert(Thread.isMainThread, "Must be run on main thread")
         
+        print("Pushing view")
+        
         guard let navigationController = UIApplication.shared.navigationController else {
             print("🆘 No navigation controller found")
             return
