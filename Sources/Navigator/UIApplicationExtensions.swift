@@ -26,14 +26,17 @@ extension UIApplication {
             throw NavigatorError.noNavigationController
         }
         
+        if let id = identifier,
+           navigationController.viewControllers
+             .compactMap({ $0 as? NavigatorView })
+             .contains(where: { $0.identifier == id }) {
+          return
+        }
+        
         let targetVC = NavigatorView(rootView: view, identifier: identifier)
         
         if let title {
             targetVC.title = title
-        }
-        
-        if navigationController.viewControllers.contains(where: { $0 === targetVC }) {
-            return
         }
         
         if let animation = animation {
@@ -146,7 +149,7 @@ extension UIApplication {
     private func addTransition(vc: UIViewController, animation: NavigationAnimation) {
         let transition = CATransition()
         transition.duration = animation.duration
-        transition.timingFunction = CAMediaTimingFunction(name: animation.mediaTimingFunction)
+        transition.timingFunction = CAMediaTimingFunction(name: animation.timingFunction)
         transition.type = animation.transitionType
         vc.view.layer.add(transition, forKey: nil)
     }
