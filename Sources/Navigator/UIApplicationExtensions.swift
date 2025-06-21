@@ -20,6 +20,20 @@ extension UIApplication {
 
 // MARK: - Navigation Controller
 extension UIApplication {
+    func getNavigationController() -> UINavigationController? {
+        guard let window = firstWindow else {
+            print("🆘 No window found")
+            return nil
+        }
+        
+        guard let rootViewController = window.rootViewController else {
+            print("🆘 No navigation controller found")
+            return nil
+        }
+        
+        return findNavigationController(viewController: rootViewController)
+    }
+    
     private func addTransition(vc: UIViewController, animation: NavigationAnimation) {
         let transition = CATransition()
         transition.duration = animation.duration
@@ -39,12 +53,6 @@ extension UIApplication {
         
         for childVC in vc.children {
             if let found = findNavigationController(viewController: childVC) {
-                return found
-            }
-        }
-        
-        if let presented = vc.presentedViewController {
-            if let found = findNavigationController(viewController: presented) {
                 return found
             }
         }

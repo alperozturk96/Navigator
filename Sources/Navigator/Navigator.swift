@@ -1,19 +1,9 @@
 import SwiftUI
 
 public struct Navigator {
-    private let window: UIWindow
-    private let navigationController: UINavigationController
-    
-    /// Inits the Navigator
-    ///
     @MainActor
-    public init(window: UIWindow) throws {
-        self.window = window
-        let nav = UINavigationController()
-        window.rootViewController = nav
-        window.makeKeyAndVisible()
-        self.navigationController = nav
-    }
+    public static let shared = Navigator()
+    private init() {}
 }
 
 // MARK: - Push
@@ -27,6 +17,11 @@ public extension Navigator {
     @MainActor
     func push<V: View>(_ view: V, identifier: String?, animation: NavigationAnimation? = nil) {
         assert(Thread.isMainThread, "Must be run on main thread")
+        
+        guard let navigationController = UIApplication.shared.getNavigationController() else {
+            print("🆘 No navigation controller found")
+            return
+        }
         
         if let id = identifier,
            navigationController.viewControllers
@@ -53,6 +48,11 @@ public extension Navigator {
     func pop() {
         assert(Thread.isMainThread, "Must be run on main thread")
         
+        guard let navigationController = UIApplication.shared.getNavigationController() else {
+            print("🆘 No navigation controller found")
+            return
+        }
+        
         navigationController.popViewController(animated: true)
     }
     
@@ -67,6 +67,11 @@ public extension Navigator {
     @discardableResult
     func popTo(_ identifier: String, animation: NavigationAnimation? = nil) throws -> Bool {
         assert(Thread.isMainThread, "Must be run on main thread")
+        
+        guard let navigationController = UIApplication.shared.getNavigationController() else {
+            print("🆘 No navigation controller found")
+            return false
+        }
         
         guard let targetVC = navigationController.viewControllers
             .compactMap({ $0 as? NavigatorViewController })
@@ -89,6 +94,11 @@ public extension Navigator {
     func popToRoot(animated: Bool = true) {
         assert(Thread.isMainThread, "Must be run on main thread")
         
+        guard let navigationController = UIApplication.shared.getNavigationController() else {
+            print("🆘 No navigation controller found")
+            return
+        }
+        
         navigationController.popToRootViewController(animated: animated)
     }
 }
@@ -110,6 +120,11 @@ public extension Navigator {
     @MainActor
     func clearStack() {
         assert(Thread.isMainThread, "Must be run on main thread")
+        
+        guard let navigationController = UIApplication.shared.getNavigationController() else {
+            print("🆘 No navigation controller found")
+            return
+        }
         
         let viewControllersToRemove = navigationController.viewControllers
         
@@ -134,6 +149,11 @@ public extension Navigator {
     
     @MainActor
     private func setNavigationStack<V: View>(stack: [(V, String?)]) {
+        guard let window = UIApplication.shared.firstWindow else {
+            print("🆘 No window found")
+            return
+        }
+        
         let navigationController = UINavigationController()
         navigationController.viewControllers = stack.map({ view, identifier in
             NavigatorViewController(rootView: view, identifier: identifier)
@@ -160,8 +180,12 @@ public extension Navigator {
     func presentModal<V: View>(_ view: V, identifier: String?) {
         assert(Thread.isMainThread, "Must be run on main thread")
         
-        let vc = NavigatorViewController(rootView: view, identifier: identifier)
+        guard let navigationController = UIApplication.shared.getNavigationController() else {
+            print("🆘 No navigation controller found")
+            return
+        }
         
+        let vc = NavigatorViewController(rootView: view, identifier: identifier)
         let modal = UINavigationController(rootViewController: vc)
         navigationController.topViewController?.present(modal, animated: true)
     }
