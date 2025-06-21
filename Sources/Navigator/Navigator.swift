@@ -15,10 +15,10 @@ public struct Navigator {
     ///   - identifier: an optional string key to identify this root view.
     @MainActor
     public init<V: View>(
+        window: UIWindow,
         rootView: V,
         identifier: String? = nil,
     ) {
-        let window = UIWindow()
         let rootVC = NavigatorView(rootView: rootView, identifier: identifier)
         let nav = UINavigationController(rootViewController: rootVC)
         
