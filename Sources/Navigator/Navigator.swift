@@ -6,28 +6,21 @@ public struct Navigator {
     
     /// Inits the Navigator
     ///
-    /// - Parameters:
-    ///   - rootView: the SwiftUI `View` you want at the bottom of the stack.
-    ///   - identifier: an optional string key to identify this root view.
     @MainActor
-    public init<V: View>(
-        scene: UIScene,
-        rootView: V,
-        identifier: String? = nil,
-    ) throws {
-        guard let windowScene = scene as? UIWindowScene else {
-            throw NavigationError.noScene
+    public init() throws {
+        guard let window = UIApplication.shared.firstWindow else {
+            print("🆘 No window found")
+            throw NavigationError.noWindow
         }
         
-        let window = UIWindow(windowScene: windowScene)
-        let rootVC = NavigatorViewController(rootView: rootView, identifier: identifier)
-        let nav = UINavigationController(rootViewController: rootVC)
-        
-        window.rootViewController = nav
-        window.makeKeyAndVisible()
-        
         self.window = window
-        self.navigationController = nav
+        
+        guard let navigationController = UIApplication.shared.findNavigationController(viewController: window.rootViewController) else {
+            print("🆘 No navigation controller found")
+            throw NavigationError.noNavigationController
+        }
+        
+        self.navigationController = navigationController
     }
 }
 
