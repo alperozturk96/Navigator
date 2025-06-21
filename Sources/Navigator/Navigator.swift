@@ -18,7 +18,7 @@ public extension Navigator {
     func push<V: View>(_ view: V, identifier: String?, animation: NavigationAnimation? = nil) {
         assert(Thread.isMainThread, "Must be run on main thread")
         
-        guard let navigationController = UIApplication.shared.getNavigationController() else {
+        guard let navigationController = UIApplication.shared.navigationController else {
             print("🆘 No navigation controller found")
             return
         }
@@ -48,7 +48,7 @@ public extension Navigator {
     func pop() {
         assert(Thread.isMainThread, "Must be run on main thread")
         
-        guard let navigationController = UIApplication.shared.getNavigationController() else {
+        guard let navigationController = UIApplication.shared.navigationController else {
             print("🆘 No navigation controller found")
             return
         }
@@ -68,7 +68,7 @@ public extension Navigator {
     func popTo(_ identifier: String, animation: NavigationAnimation? = nil) throws -> Bool {
         assert(Thread.isMainThread, "Must be run on main thread")
         
-        guard let navigationController = UIApplication.shared.getNavigationController() else {
+        guard let navigationController = UIApplication.shared.navigationController else {
             print("🆘 No navigation controller found")
             return false
         }
@@ -94,7 +94,7 @@ public extension Navigator {
     func popToRoot(animated: Bool = true) {
         assert(Thread.isMainThread, "Must be run on main thread")
         
-        guard let navigationController = UIApplication.shared.getNavigationController() else {
+        guard let navigationController = UIApplication.shared.navigationController else {
             print("🆘 No navigation controller found")
             return
         }
@@ -121,7 +121,7 @@ public extension Navigator {
     func clearStack() {
         assert(Thread.isMainThread, "Must be run on main thread")
         
-        guard let navigationController = UIApplication.shared.getNavigationController() else {
+        guard let navigationController = UIApplication.shared.navigationController else {
             print("🆘 No navigation controller found")
             return
         }
@@ -149,7 +149,7 @@ public extension Navigator {
     
     @MainActor
     private func setNavigationStack<V: View>(stack: [(V, String?)]) {
-        guard let window = UIApplication.shared.firstWindow else {
+        guard let window = UIApplication.shared.keyWindow else {
             print("🆘 No window found")
             return
         }
@@ -180,7 +180,7 @@ public extension Navigator {
     func presentModal<V: View>(_ view: V, identifier: String?) {
         assert(Thread.isMainThread, "Must be run on main thread")
         
-        guard let navigationController = UIApplication.shared.getNavigationController() else {
+        guard let navigationController = UIApplication.shared.navigationController else {
             print("🆘 No navigation controller found")
             return
         }
