@@ -43,6 +43,12 @@ extension UIApplication {
             }
         }
         
+        if let presented = vc.presentedViewController {
+            if let found = findNavigationController(viewController: presented) {
+                return found
+            }
+        }
+        
         return nil
     }
 }
