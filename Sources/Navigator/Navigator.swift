@@ -7,12 +7,7 @@ public struct Navigator {
     /// Inits the Navigator
     ///
     @MainActor
-    public init() throws {
-        guard let window = UIApplication.shared.firstWindow else {
-            print("🆘 No window found")
-            throw NavigationError.noWindow
-        }
-        
+    public init(window: UIWindow) throws {
         self.window = window
         
         guard let navigationController = UIApplication.shared.findNavigationController(viewController: window.rootViewController) else {
