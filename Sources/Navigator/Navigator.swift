@@ -1,35 +1,59 @@
 import SwiftUI
 
-/// Navigator is a wrapper that uses UINavigationController.
-///
-/// Navigator uses UIApplication extensions to perform navigation according to needs such as pop, push, popTo specific View, present View modally etc.
 public struct Navigator {
-    // MARK: Push
-    
+    @MainActor
+    public static let shared = Navigator()
+    private init() {}
+}
+
+// MARK: - Push
+public extension Navigator {
     /// Pushes a SwiftUI view onto the navigation stack.
     ///
     /// - Parameters:
     ///   - view: The SwiftUI `View` to push.
     ///   - identifier: A string key to identify this view (optional).
     ///   - animation: A custom `NavigationAnimation` (optional).
-    ///   - title: The title shown in the nav bar (optional).
-    /// - Throws: `NavigatorError.noNavigationController` if no nav controller exists.
     @MainActor
-    public static func push<V: View>(_ view: V, identifier: String?, animation: NavigationAnimation? = nil, title: String? = nil) throws {
+    func push<V: View>(_ view: V, identifier: String?, animation: NavigationAnimation? = nil) {
         assert(Thread.isMainThread, "Must be run on main thread")
         
-        try UIApplication.shared.push(view: view, identifier: identifier, animation: animation, title: title)
+        guard let navigationController = UIApplication.shared.navigationController else {
+            print("🆘 No navigation controller found")
+            return
+        }
+        
+        if let id = identifier,
+           navigationController.viewControllers
+            .compactMap({ $0 as? NavigatorViewController })
+            .contains(where: { $0.identifier == id }) {
+            print("🆘 View with identifier '\(id)' already exists.")
+            return
+        }
+        
+        let vc = NavigatorViewController(rootView: view, identifier: identifier)
+        
+        if let animation = animation {
+            addTransition(vc: vc, animation: animation)
+        }
+        
+        navigationController.pushViewController(vc, animated: true)
     }
-    
-    // MARK: Pop
-    
+}
+
+// MARK: - POP
+public extension Navigator {
     /// Pops the from the last view.
-    /// - Throws: `NavigatorError.noNavigationController` if not embedded.
     @MainActor
-    public static func pop() throws {
+    func pop() {
         assert(Thread.isMainThread, "Must be run on main thread")
         
-        try UIApplication.shared.pop()
+        guard let navigationController = UIApplication.shared.navigationController else {
+            print("🆘 No navigation controller found")
+            return
+        }
+        
+        navigationController.popViewController(animated: true)
     }
     
     /// Pops until the view with the given identifier is on top.
@@ -38,82 +62,143 @@ public struct Navigator {
     ///   - identifier: The identifier you assigned when pushing.
     ///   - animation: A custom animation to apply to the target view (optional).
     /// - Returns: `true` if the pop succeeded.
-    /// - Throws:
-    ///   - `NavigatorError.noNavigationController`
     ///   - `NavigatorError.viewNotFound(identifier:)`
     @MainActor
     @discardableResult
-    public static func popTo(_ identifier: String, animation: NavigationAnimation? = nil) throws -> Bool {
+    func popTo(_ identifier: String, animation: NavigationAnimation? = nil) throws -> Bool {
         assert(Thread.isMainThread, "Must be run on main thread")
         
-        return try UIApplication.shared.popToView(identifier, animation: animation)
+        guard let navigationController = UIApplication.shared.navigationController else {
+            print("🆘 No navigation controller found")
+            return false
+        }
+        
+        guard let targetVC = navigationController.viewControllers
+            .compactMap({ $0 as? NavigatorViewController })
+            .first(where: { $0.identifier == identifier }) else {
+            print("🆘 View identifier not found: \(identifier)")
+            throw NavigationError.viewNotFound(identifier: identifier)
+        }
+        
+        if let animation {
+            addTransition(vc: targetVC, animation: animation)
+        }
+        
+        navigationController.popToViewController(targetVC, animated: true)
+        return true
     }
     
     /// Pops all view controllers until root presents.
     /// - Parameter animated: whether to animate the pop (default `true`).
-    /// - Throws: `NavigatorError.noNavigationController`.
     @MainActor
-    public static func popToRoot(animated: Bool = true) throws {
+    func popToRoot(animated: Bool = true) {
         assert(Thread.isMainThread, "Must be run on main thread")
         
-        guard let navController = try UIApplication.shared.getNavigationController() else {
-            throw NavigatorError.noNavigationController
+        guard let navigationController = UIApplication.shared.navigationController else {
+            print("🆘 No navigation controller found")
+            return
         }
         
-        navController.popToRootViewController(animated: animated)
+        navigationController.popToRootViewController(animated: animated)
     }
-    
-    /// Clears out all view controllers from the current nav stack.
-    /// - Throws: `NavigatorError.noNavigationController`.
-    @MainActor
-    public static func clearStack() throws {
-        assert(Thread.isMainThread, "Must be run on main thread")
-        
-        try UIApplication.shared.removeAllViews()
-    }
-    
-    // MARK: Reset & Replace
-    
+}
+
+
+// MARK: - Navigation Stack
+public extension Navigator {
     /// Replaces the entire navigation stack with the given views.
     ///
     /// - Parameter stack: An array of `(View, String?)` tuples.
-    /// - Throws: `NavigatorError.noWindow`.
     @MainActor
-    public static func setStack<V: View>(_ stack: [(V, String?)]) throws {
+    func setStack<V: View>(_ stack: [(V, String?)]) {
         assert(Thread.isMainThread, "Must be run on main thread")
         
-        try UIApplication.shared.setNavigationStack(stack: stack)
+        setNavigationStack(stack: stack)
+    }
+    
+    /// Clears out all view controllers from the current nav stack.
+    @MainActor
+    func clearStack() {
+        assert(Thread.isMainThread, "Must be run on main thread")
+        
+        guard let navigationController = UIApplication.shared.navigationController else {
+            print("🆘 No navigation controller found")
+            return
+        }
+        
+        let viewControllersToRemove = navigationController.viewControllers
+        
+        for vc in viewControllersToRemove {
+            vc.willMove(toParent: nil)
+            if vc.isViewLoaded {
+                vc.view.removeFromSuperview()
+            }
+            vc.removeFromParent()
+        }
+        
+        navigationController.viewControllers = []
     }
     
     /// Sets a single SwiftUI view as the root (clears stack).
-    /// - Throws: `NavigatorError.noWindow`.
     @MainActor
-    public static func setRoot<V: View>(_ view: V, identifier: String?) throws {
+    func setRoot<V: View>(_ view: V, identifier: String?) {
         assert(Thread.isMainThread, "Must be run on main thread")
         
-        try UIApplication.shared.setRootView(view: view, identifier: identifier)
+        setNavigationStack(stack: [(view, identifier)])
     }
     
-    // MARK: Modal
-    
+    @MainActor
+    private func setNavigationStack<V: View>(stack: [(V, String?)]) {
+        guard let window = UIApplication.shared.keyWindow else {
+            print("🆘 No window found")
+            return
+        }
+        
+        let navigationController = UINavigationController()
+        navigationController.viewControllers = stack.map({ view, identifier in
+            NavigatorViewController(rootView: view, identifier: identifier)
+        })
+        window.rootViewController = navigationController
+        window.makeKeyAndVisible()
+        
+        UIView.transition(with: window,
+                          duration: 0.3,
+                          options: .transitionCrossDissolve,
+                          animations: nil,
+                          completion: nil)
+    }
+}
+
+// MARK: - Modal
+public extension Navigator {
     /// Presents a SwiftUI view modally on top of the current top.
     ///
     /// - Parameters:
     ///   - view: The view to present.
     ///   - identifier: An optional key for later dismissal/lookup.
-    ///   - title: The nav-bar title if you wrap it in a UINavigationController.
     @MainActor
-    public static func presentModal<V: View>(_ view: V, identifier: String?, title: String? = nil) throws {
+    func presentModal<V: View>(_ view: V, identifier: String?) {
         assert(Thread.isMainThread, "Must be run on main thread")
         
-        guard let navigationController = try UIApplication.shared.getNavigationController() else {
-            throw NavigatorError.noNavigationController
+        guard let navigationController = UIApplication.shared.navigationController else {
+            print("🆘 No navigation controller found")
+            return
         }
         
-        let vc = NavigatorView(rootView: view, identifier: identifier)
-        vc.title = title
-        
+        let vc = NavigatorViewController(rootView: view, identifier: identifier)
         let modal = UINavigationController(rootViewController: vc)
         navigationController.topViewController?.present(modal, animated: true)
+    }
+}
+
+// MARK: - Helper Methods
+extension Navigator {
+    @MainActor
+    private func addTransition(vc: UIViewController, animation: NavigationAnimation) {
+        let transition = CATransition()
+        transition.duration = animation.duration
+        transition.timingFunction = CAMediaTimingFunction(name: animation.timingFunction)
+        transition.type = animation.transitionType
+        vc.view.layer.add(transition, forKey: nil)
     }
 }

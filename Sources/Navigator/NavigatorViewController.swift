@@ -1,12 +1,12 @@
 //
-//  NavigatorView.swift
+//  NavigatorViewController.swift
 //  Navigator
 //
 //  Created by Alper Ozturk on 21.06.25.
 //
 import SwiftUI
 
-final class NavigatorView: UIViewController {
+final class NavigatorViewController: UIViewController {
     private(set) var identifier: String?
 
     init(rootView: some View, identifier: String?) {
