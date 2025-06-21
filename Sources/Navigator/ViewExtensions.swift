@@ -8,7 +8,7 @@
 import SwiftUI
 
 extension View {
-    func getVC() -> UIViewController {
-        return UIHostingController(rootView: self)
+    func createNavigatorView(identifier: String?) -> NavigatorView {
+        return NavigatorView(rootView: self, identifier: identifier)
     }
 }

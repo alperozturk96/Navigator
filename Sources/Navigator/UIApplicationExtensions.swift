@@ -1,6 +1,6 @@
 //
 //  UIApplicationExtensions.swift
-//  
+//
 //
 //  Created by Alper Ozturk on 19.5.23..
 //
@@ -12,21 +12,71 @@ import SwiftUI
 extension UIApplication {
     var firstWindow: UIWindow? {
         return UIApplication.shared.connectedScenes
+            .compactMap { $0 as? UIWindowScene }
             .filter { $0.activationState == .foregroundActive }
-            .first(where: { $0 is UIWindowScene })
-            .flatMap({ $0 as? UIWindowScene })?.windows
-            .first(where: \.isKeyWindow)
+            .compactMap { $0.windows.first(where: \.isKeyWindow) }
+            .first
     }
 }
 
 // MARK: - Navigations
 extension UIApplication {
-    func presentModal<V: View>(view: V, title: String?) {
-        guard let navigationController = getNavigationController() else {
+    func push<V: View>(view: V, identifier: String? = nil, animation: NavigationAnimation?, title: String?) throws {
+        guard let navigationController = try getNavigationController() else {
+            throw NavigatorError.noNavigationController
+        }
+        
+        let targetVC = NavigatorView(rootView: view, identifier: identifier)
+        
+        if let title {
+            targetVC.title = title
+        }
+        
+        if navigationController.viewControllers.contains(where: { $0 === targetVC }) {
             return
         }
         
-        let targetVC = view.getVC()
+        if let animation = animation {
+            addTransition(vc: targetVC, animation: animation)
+        }
+        
+        navigationController.pushViewController(targetVC, animated: true)
+    }
+    
+    func pop() throws {
+        guard let navigationController = try getNavigationController() else {
+            throw NavigatorError.noNavigationController
+        }
+        
+        navigationController.popViewController(animated: true)
+    }
+    
+    @discardableResult
+    func popToView(_ identifier: String, animation: NavigationAnimation?) throws -> Bool {
+        guard let navigationController = try getNavigationController() else {
+            throw NavigatorError.noNavigationController
+        }
+        
+        guard let targetVC = navigationController.viewControllers
+            .compactMap({ $0 as? NavigatorView })
+            .first(where: { $0.identifier == identifier }) else {
+            throw NavigatorError.viewNotFound(identifier: identifier)
+        }
+        
+        if let animation {
+            addTransition(vc: targetVC, animation: animation)
+        }
+        
+        navigationController.popToViewController(targetVC, animated: true)
+        return true
+    }
+    
+    func presentModal<V: View>(view: V, identifier: String?, title: String?) throws {
+        guard let navigationController = try getNavigationController() else {
+            throw NavigatorError.noNavigationController
+        }
+        
+        let targetVC = NavigatorView(rootView: view, identifier: identifier)
         
         if let title {
             targetVC.title = title
@@ -37,58 +87,14 @@ extension UIApplication {
         }
     }
     
-    func pushToView<V: View>(view: V, animation: NavigationAnimation?, title: String?) {
-        guard let navigationController = getNavigationController() else {
-            return
+    func setNavigationStack<V: View>(stack: [(V, String?)]) throws {
+        guard let window = firstWindow else {
+            throw NavigatorError.noWindow
         }
-        
-        let targetVC = view.getVC()
-        
-        if let title {
-            targetVC.title = title
-        }
-        
-        if !navigationController.children.contains(targetVC) {
-            if let animation {
-                addTransition(vc: targetVC, animation: animation)
-            }
-            navigationController.pushViewController(targetVC, animated: true)
-        }
-    }
-
-    @discardableResult
-    func popToView(_ navigationBarTitle: String, animation: NavigationAnimation?) -> Bool {
-        guard let navigationController = getNavigationController() else {
-            return false
-        }
-        
-        for vc in navigationController.children {
-            if vc.navigationItem.title == navigationBarTitle {
-                if let animation {
-                    addTransition(vc: vc, animation: animation)
-                }
-                navigationController.popToViewController(vc, animated: true)
-                return true
-            }
-        }
-        
-        return false
-    }
-    
-    func pop() {
-        guard let navigationController = getNavigationController() else {
-            return
-        }
-        
-        navigationController.popViewController(animated: true)
-    }
-    
-    func setNavigationStack<V: View>(views: [V]) {
-        guard let window = firstWindow else { return }
         
         let navigationController = UINavigationController()
-        navigationController.viewControllers = views.map({ view in
-            view.getVC()
+        navigationController.viewControllers = stack.map({ view, identifier in
+            NavigatorView(rootView: view, identifier: identifier)
         })
         window.rootViewController = navigationController
         window.makeKeyAndVisible()
@@ -100,30 +106,41 @@ extension UIApplication {
                           completion: nil)
     }
     
-    func setRootView<V: View>(view: V) {
-        setNavigationStack(views: [view])
+    func setRootView<V: View>(view: V, identifier: String?) throws {
+        try setNavigationStack(stack: [(view, identifier)])
     }
     
-    func removeAllViews() {
-        guard let navigationController = getNavigationController() else {
-            return
+    func removeAllViews() throws {
+        guard let navigationController = try getNavigationController() else {
+            throw NavigatorError.noNavigationController
         }
         
-        navigationController.children.forEach({
-            $0.willMove(toParent: nil)
-            $0.view.removeFromSuperview()
-            $0.removeFromParent()
-        })
+        let viewControllersToRemove = navigationController.viewControllers
+        
+        for vc in viewControllersToRemove {
+            vc.willMove(toParent: nil)
+            if vc.isViewLoaded {
+                vc.view.removeFromSuperview()
+            }
+            vc.removeFromParent()
+        }
+        
+        navigationController.viewControllers = []
     }
 }
 
 // MARK: - Navigation Controller
 extension UIApplication {
-    func getNavigationController() -> UINavigationController? {
-        guard let window = firstWindow else { return nil }
-        guard let rootViewController = window.rootViewController else { return nil }
-        guard let navigationController = findNavigationController(viewController: rootViewController) else { return nil }
-        return navigationController
+    func getNavigationController() throws -> UINavigationController? {
+        guard let window = firstWindow else {
+            throw NavigatorError.noWindow
+        }
+        
+        guard let rootViewController = window.rootViewController else {
+            throw NavigatorError.noNavigationController
+        }
+        
+        return findNavigationController(viewController: rootViewController)
     }
     
     private func addTransition(vc: UIViewController, animation: NavigationAnimation) {
@@ -144,7 +161,9 @@ extension UIApplication {
         }
         
         for childVC in vc.children {
-            return findNavigationController(viewController: childVC)
+            if let found = findNavigationController(viewController: childVC) {
+                return found
+            }
         }
         
         return nil
