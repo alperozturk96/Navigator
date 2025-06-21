@@ -4,6 +4,45 @@ import SwiftUI
 ///
 /// Navigator uses UIApplication extensions to perform navigation according to needs such as pop, push, popTo specific View, present View modally etc.
 public struct Navigator {
+    
+    private let window: UIWindow
+    private let navigationController: UINavigationController
+    
+    /// Inits the Navigator
+    ///
+    /// - Parameters:
+    ///   - rootView: the SwiftUI `View` you want at the bottom of the stack.
+    ///   - identifier: an optional string key to identify this root view.
+    ///   - windowScene: if your app uses scenes, pass in the relevant `UIWindowScene`; otherwise we'll pick the first foreground-active one.
+    /// - Throws: `NavigatorError.noWindow` if we can’t find or create a window scene.
+    @MainActor
+    public init<V: View>(
+        rootView: V,
+        identifier: String? = nil,
+        windowScene: UIWindowScene? = nil
+    ) throws {
+        let scene: UIWindowScene
+        if let provided = windowScene {
+            scene = provided
+        } else if let active = UIApplication.shared.connectedScenes
+            .first(where: { $0.activationState == .foregroundActive }) as? UIWindowScene {
+            scene = active
+        } else {
+            throw NavigatorError.noWindow
+        }
+        
+        let window = UIWindow(windowScene: scene)
+        let rootVC = NavigatorView(rootView: rootView, identifier: identifier)
+        let nav = UINavigationController(rootViewController: rootVC)
+        
+        window.rootViewController = nav
+        window.makeKeyAndVisible()
+        
+        self.window = window
+        self.navigationController = nav
+    }
+    
+    
     // MARK: Push
     
     /// Pushes a SwiftUI view onto the navigation stack.
@@ -106,14 +145,6 @@ public struct Navigator {
     public static func presentModal<V: View>(_ view: V, identifier: String?, title: String? = nil) throws {
         assert(Thread.isMainThread, "Must be run on main thread")
         
-        guard let navigationController = try UIApplication.shared.getNavigationController() else {
-            throw NavigatorError.noNavigationController
-        }
-        
-        let vc = NavigatorView(rootView: view, identifier: identifier)
-        vc.title = title
-        
-        let modal = UINavigationController(rootViewController: vc)
-        navigationController.topViewController?.present(modal, animated: true)
+        try UIApplication.shared.presentModal(view: view, identifier: identifier, title: title)
     }
 }

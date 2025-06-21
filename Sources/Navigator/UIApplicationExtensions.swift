@@ -79,15 +79,11 @@ extension UIApplication {
             throw NavigatorError.noNavigationController
         }
         
-        let targetVC = NavigatorView(rootView: view, identifier: identifier)
+        let vc = NavigatorView(rootView: view, identifier: identifier)
+        vc.title = title
         
-        if let title {
-            targetVC.title = title
-        }
-        
-        if let topVC = navigationController.topViewController {
-            topVC.present(targetVC, animated: true, completion: nil)
-        }
+        let modal = UINavigationController(rootViewController: vc)
+        navigationController.topViewController?.present(modal, animated: true)
     }
     
     func setNavigationStack<V: View>(stack: [(V, String?)]) throws {
